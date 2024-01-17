@@ -16,22 +16,26 @@ export class AuthControllerGateway{
         }
 
         try {
-            const authResponse = await axios.post(`${AUTH_API_URL}/register`, { email, username, password });
 
-            if (authResponse.status !== 200) {
-                return res.status(authResponse.status).json({ error: authResponse.data });
+            const authResponse = await axios.post(`${AUTH_API_URL}/register`, { email, username, password});
+
+            if (authResponse.status !== 201) {
+                return res.status(authResponse.status).json(authResponse.data);
             }
 
             const userResponse = await axios.post(`${USER_API_URL}/users`, { firstname, lastname, username, email, role });
 
+            console.log(userResponse)
+
             if (userResponse.status !== 200) {
-                return res.status(userResponse.status).json({ error: userResponse.data });
+                return res.status(userResponse.status).json(userResponse.data);
             }
 
             return res.status(200).json({ message: 'User successfully registered', data: userResponse.data });
 
         } catch (error) {
-            return res.status(500).json({ error: error.response?.data || 'Internal Server Error' });
+            console.log("error", error)
+            return res.status(500).json(error.response?.data || 'Internal Server Error' );
         }
     }
 
@@ -43,7 +47,7 @@ export class AuthControllerGateway{
             return res.status(200).json(response.data);
 
         } catch (error) {
-            return res.status(500).json({ error: error.response?.data || 'Internal Server Error' });
+            return res.status(500).json(error.response?.data || 'Internal Server Error' );
         }
     }
 
