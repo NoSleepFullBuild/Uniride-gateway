@@ -18,13 +18,13 @@ export class AuthControllerGateway{
         try {
             const authResponse = await axios.post(`${AUTH_API_URL}/register`, { email, username, password });
 
-            if (authResponse.status !== 200) {
+            if (authResponse.status !== 201) {
                 return res.status(authResponse.status).json({ error: authResponse.data });
             }
 
-            const userResponse = await axios.post(`${USER_API_URL}/users`, { firstname, lastname, username, email, role });
+            const userResponse = await axios.post(`${USER_API_URL}`, { firstname, lastname, username, email, role });
 
-            if (userResponse.status !== 200) {
+            if (userResponse.status !== 201) {
                 return res.status(userResponse.status).json({ error: userResponse.data });
             }
 
@@ -39,6 +39,20 @@ export class AuthControllerGateway{
         try {
             const { email, password } = req.body;
             const response = await axios.post(`${AUTH_API_URL}/login`, { email, password });
+
+            return res.status(200).json(response.data);
+
+        } catch (error) {
+            return res.status(500).json({ error: error.response?.data || 'Internal Server Error' });
+        }
+    }
+
+    async logout(req: Request, res: Response) {
+        try {
+            const token = req.headers["authorization"]?.split(" ")[1];
+            if (!token) throw new Error("No token provided.");
+
+            const response = await axios.post(`${AUTH_API_URL}/logout`, {}, { headers: { Authorization: `Bearer ${token}` } });
 
             return res.status(200).json(response.data);
 
