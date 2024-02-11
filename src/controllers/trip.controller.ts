@@ -18,7 +18,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.get(`${TRIP_API_URL}`);
@@ -38,8 +38,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
-      console.log(tokenResponse);
+      const tokenResponse = await this.tokenService.getAuth(token);
 
       const response = await axios.get(`${TRIP_API_URL}/${req.params.id}`);
       return res.status(200).json(response.data);
@@ -58,10 +57,20 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
-      console.log(tokenResponse);
+      const auth = await this.tokenService.getAuth(token);
 
-      const response = await axios.post(`${TRIP_API_URL}`, req.body);
+      const structuredData = {
+        data: req.body,
+        metadata: {
+            ...auth
+        }
+      };
+
+      console.log(structuredData)
+
+      const response = await axios.post(`${TRIP_API_URL}`,
+       structuredData)
+
       return res.status(201).json(response.data);
     } catch (error) {
       return res
@@ -78,12 +87,12 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.post(
         `${TRIP_API_URL}/${req.params.id}/join`,
-        req.body
+         { ...req.body, token },
       );
       console.log(response);
       return res.status(200).json(response.data);
@@ -102,7 +111,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.get(
@@ -124,12 +133,12 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.put(
         `${TRIP_API_URL}/${req.params.id}`,
-        req.body
+        { ...req.body, token },
       );
       return res.status(200).json(response.data);
     } catch (error) {
@@ -147,7 +156,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.delete(`${TRIP_API_URL}/${req.params.id}`);
@@ -167,7 +176,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.get(
@@ -189,7 +198,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.verifyToken(token);
+      const tokenResponse = await this.tokenService.getAuth(token);
       console.log(tokenResponse);
 
       const response = await axios.get(

@@ -28,11 +28,6 @@ app.get('/api/gateway/trips/passengers/:id', tripController.getTripsByPassengerI
 app.put('/api/gateway/trips/:id', tripController.updateTrip.bind(tripController));
 app.delete('/api/gateway/trips/:id', tripController.deleteTrip.bind(tripController));
 
-
-
-
-
-
 app.listen(3002, () => {
     console.log('API Gateway en écoute sur le port 3002');
 });
