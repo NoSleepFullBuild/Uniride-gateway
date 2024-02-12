@@ -1,5 +1,6 @@
 import { AuthControllerGateway } from "./controllers/auth.controller";
 import { TripControllerGateway } from "./controllers/trip.controller";
+import { UserControllerGateway } from "./controllers/user.controller";
 
 
 const express = require('express');
@@ -10,6 +11,7 @@ app.use(bodyParser.json());
 
 const authController = new AuthControllerGateway();
 const tripController = new TripControllerGateway();
+const userController = new UserControllerGateway();
 
 app.post('/api/gateway/login', authController.login.bind(authController));
 app.post('/api/gateway/register', authController.register.bind(authController));
@@ -27,6 +29,8 @@ app.get('/api/gateway/trips/driver/:id', tripController.getTripsByDriverId.bind(
 app.get('/api/gateway/trips/passengers/:id', tripController.getTripsByPassengerId.bind(tripController));
 app.put('/api/gateway/trips/:id', tripController.updateTrip.bind(tripController));
 app.delete('/api/gateway/trips/:id', tripController.deleteTrip.bind(tripController));
+
+app.get('/api/gateway/users/:id', userController.getUserById.bind(userController));
 
 app.listen(3002, () => {
     console.log('API Gateway en écoute sur le port 3002');
