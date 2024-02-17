@@ -1,5 +1,6 @@
 import { AuthControllerGateway } from "./controllers/auth.controller";
 import { TripControllerGateway } from "./controllers/trip.controller";
+import { UserControllerGateway } from "./controllers/user.controller";
 
 
 const express = require('express');
@@ -9,13 +10,16 @@ const app = express();
 app.use(bodyParser.json());
 
 const authController = new AuthControllerGateway();
+const UserController = new UserControllerGateway();
 const tripController = new TripControllerGateway();
 
-app.post('/api/gateway/login', authController.login.bind(authController));
-app.post('/api/gateway/register', authController.register.bind(authController));
-app.post('/api/gateway/logout', authController.logout.bind(authController));
-app.get('/api/gateway/whoiam', authController.whoIam.bind(authController));
-app.get('/api/gateway/verify-token', authController.verifyToken.bind(authController));
+app.post('/api/gateway/auth/login', authController.login.bind(authController));
+app.post('/api/gateway/auth/register', authController.register.bind(authController));
+app.post('/api/gateway/auth/logout', authController.logout.bind(authController));
+app.get('/api/gateway/auth/verify-token', authController.verifyToken.bind(authController));
+app.get('/api/gateway/auth/whoiam', authController.whoIam.bind(authController));
+
+app.get('/api/gateway/user/whoiam', UserController.whoIam.bind(UserController));
 
 app.get('/api/gateway/trips', tripController.getTrips.bind(tripController));
 app.get('/api/gateway/trips/:id', tripController.getTripById.bind(tripController));
