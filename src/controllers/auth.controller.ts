@@ -4,6 +4,13 @@ import { AUTH_API_URL, USER_API_URL } from "../const";
 
 export class AuthControllerGateway {
   async register(req: Request, res: Response) {
+
+    // checkout fields
+    const { email, username, password } = req.body;
+    if (!email || !username || !password ) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
     try {
       const authResponse = await axios.post(
         `${AUTH_API_URL}/register`,
@@ -13,8 +20,11 @@ export class AuthControllerGateway {
       if (authResponse.status !== 201) {
         return res.status(authResponse.status).json(authResponse.data);
       }
+      
 
-      const userResponse = await axios.post(`${USER_API_URL}`, req.body);
+      console.log("authResponse", authResponse.data);
+
+      const userResponse = await axios.post(`${USER_API_URL}`, {...req.body, authId: authResponse.data.user.id});
       if (userResponse.status !== 200) {
         return res.status(userResponse.status).json(userResponse.data);
       }
@@ -22,11 +32,12 @@ export class AuthControllerGateway {
       return res
         .status(200)
         .json({
-          message: "User successfully registered",
+          message: "Auth successfully registered",
           data: userResponse.data,
         });
+        
     } catch (error) {
-      console.log("error", error);
+      console.log(error.response)
       return res
         .status(500)
         .json(error.response?.data || "Internal Server Error");
