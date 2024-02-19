@@ -92,7 +92,7 @@ export class UserControllerGateway{
             }
 
             const response = await axios.put(
-                `${USER_API_URL}/update/${req.params.id}`,
+                `${USER_API_URL}/${req.params.id}`,
                 req.body,
                 {
                     headers: {
@@ -116,7 +116,7 @@ export class UserControllerGateway{
                 return res.status(400).json({ error: "No token provided." });
             }
 
-            const response = await axios.delete(`${USER_API_URL}/delete/${req.params.id}`, {
+            const response = await axios.delete(`${USER_API_URL}/${req.params.id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
