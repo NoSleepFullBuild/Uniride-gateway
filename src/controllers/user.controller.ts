@@ -1,132 +1,204 @@
 import axios from "axios";
-import { Request, Response } from "express";
 import { AUTH_API_URL, USER_API_URL } from "../const";
+import { Authenticate } from "../services/authenticate";
+import { Request, Response, NextFunction } from "express";
 
 export class UserControllerGateway{
 
-    async whoIam(req:Request, res: Response){
-        try {
-            const token = req.headers["authorization"]?.split(" ")[1];
-            console.log(token)
-
-            if (!token) {
-                return res.status(400).json({ error: "No token provided." });
-            }
-
-            const responseAuth = await axios.get(`${AUTH_API_URL}/whoIam`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-        
-            if(responseAuth.data.error){
-                return res.status(401).json(responseAuth.data);
-            }
-
-            const responseUser = await axios.get(`${USER_API_URL}/whoIam/${responseAuth.data.authId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if(responseUser.data.error){
-                return res.status(404).json(responseUser.data);
-            }
-
-            return res.status(200).json(responseUser.data);
-
-        } catch (error) {
-            return res
-                .status(500)
-                .json(error.response?.data || "Internal Server Error");
-        }
+    private authenticationService : Authenticate
+    
+    constructor(){
+        this.authenticationService = new Authenticate();
     }
 
-    async getUsers(req: Request, res: Response) {
+    async whoIam(req: Request, res: Response): Promise<Response>{
         try {
-            const token = req.headers["authorization"]?.split(" ")[1];
-            if (!token) {
-                return res.status(400).json({ error: "No token provided." });
+          const authentication = await this.authenticationService.getAuth(req);
+          if(authentication.error){
+            return res.status(401).json(authentication);
+          }
+
+          const responseUser = await axios.get(`${USER_API_URL}/whoIam/${authentication.user.email}`, {
+            headers: {
+              Authorization: `Bearer ${authentication.token}`,
+            },
+          });
+      
+          if (responseUser.data.error) {
+            return res.status(404).json(responseUser.data);
+          }
+      
+          const reponse = {
+            items: [ responseUser.data ],
+            host: { ... authentication.user, token: authentication.token }
+          };
+      
+          return res.status(200).json(reponse);
+        } catch (error) {
+            if(error.response?.data.error){
+                return res
+                .status(500)
+                .json(error.response?.data);
+            }else{
+                return res
+                .status(500)
+                .json({error: "Internal Server Error"});
+            }
+        }
+      }
+
+    async getUsers(req: Request, res: Response): Promise<Response>{
+        try {
+
+            const authentication = await this.authenticationService.getAuth(req);
+            if(authentication.error){
+              return res.status(401).json(authentication);
             }
 
-            const response = await axios.get(`${USER_API_URL}/`, {
+            if(authentication.user.role !== "admin"){
+                return res.status(403).json({ error: "You are not authorized to access this resource" });
+            }
+            
+            const users = await axios.get(`${USER_API_URL}/`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${authentication.token}`,
                 },
             });
 
-            return res.status(200).json(response.data);
+            const reponse = {
+                items: [users.data ],
+                host: { ... authentication.user, token: authentication.token }
+              };
+
+            return res.status(200).json(reponse);
+
         } catch (error) {
-            return res
+            if(error.response?.data.error){
+                return res
                 .status(500)
-                .json(error.response?.data || "Internal Server Error");
+                .json(error.response?.data);
+            }else{
+                return res
+                .status(500)
+                .json({error: "Internal Server Error"});
+            }
         }
     }
 
     async getUserById(req: Request, res: Response) {
         try {
-            const token = req.headers["authorization"]?.split(" ")[1];
-            if (!token) {
-                return res.status(400).json({ error: "No token provided." });
+            
+            const authentication = await this.authenticationService.getAuth(req);
+            if(authentication.error){
+              return res.status(401).json(authentication);
+            }
+           
+            if(authentication.user.role !== "admin"){
+                return res.status(403).json({ error: "You are not authorized to access this resource" });
             }
 
-            const response = await axios.get(`${USER_API_URL}/${req.params.id}`, {
+            const userById = await axios.get(`${USER_API_URL}/${req.params.id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${authentication.token}`,
                 },
             });
 
-            return res.status(200).json(response.data);
+            const reponse = {
+                message: "User successfully found",
+                items: [userById.data],
+                host: { ... authentication.user, token: authentication.token }
+              };
+
+            return res.status(200).json(reponse);
+
         } catch (error) {
-            return res
+            if(error.response?.data.error){
+                return res
                 .status(500)
-                .json(error.response?.data || "Internal Server Error");
+                .json(error.response?.data);
+            }else{
+                return res
+                .status(500)
+                .json({error: "Internal Server Error"});
+            }
         }
     }
 
     async updateUser(req: Request, res: Response) {
         try {
-            const token = req.headers["authorization"]?.split(" ")[1];
-            if (!token) {
-                return res.status(400).json({ error: "No token provided." });
+            
+            const authentication = await this.authenticationService.getAuth(req);
+            if(authentication.error){
+              return res.status(401).json(authentication);
             }
 
-            const response = await axios.put(
-                `${USER_API_URL}/update/${req.params.id}`,
+            const updateUserById = await axios.put(
+                `${USER_API_URL}/${req.params.id}`,
                 req.body,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${authentication.token}`,
                     },
                 }
             );
 
-            return res.status(200).json(response.data);
+            const reponse = {
+                message: "User successfully updated",
+                items: [ updateUserById.data ],
+                host: { ... authentication.user, token: authentication.token }
+              };
+
+            return res.status(200).json(reponse);
+
         } catch (error) {
-            return res
+            if(error.response?.data.error){
+                return res
                 .status(500)
-                .json(error.response?.data || "Internal Server Error");
+                .json(error.response?.data);
+            }else{
+                return res
+                .status(500)
+                .json({error: "Internal Server Error"});
+            }
         }
     }
 
     async deleteUser(req: Request, res: Response) {
         try {
-            const token = req.headers["authorization"]?.split(" ")[1];
-            if (!token) {
-                return res.status(400).json({ error: "No token provided." });
+            
+            const authentication = await this.authenticationService.getAuth(req);
+            if(authentication.error){
+              return res.status(401).json(authentication);
             }
 
-            const response = await axios.delete(`${USER_API_URL}/delete/${req.params.id}`, {
+            if(authentication.user.role !== "admin"){
+                return res.status(403).json({ error: "You are not authorized to access this resource" });
+            }
+
+            const deleteUser = await axios.delete(`${USER_API_URL}/${req.params.id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${authentication.token}`,
                 },
             });
 
-            return res.status(200).json(response.data);
+            const reponse = {
+                message: "User successfully deleted",
+                items: [ deleteUser.data ],
+                host: { ... authentication.user, token: authentication.token }
+              };
+
+            return res.status(200).json(reponse);
+
         } catch (error) {
-            return res
+            if(error.response?.data.error){
+                return res
                 .status(500)
-                .json(error.response?.data || "Internal Server Error");
+                .json(error.response?.data);
+            }else{
+                return res
+                .status(500)
+                .json({error: "Internal Server Error"});
+            }
         }
     }
 
