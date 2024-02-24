@@ -40,7 +40,7 @@ export class AuthControllerGateway {
       console.log(error.response)
       return res
         .status(500)
-        .json(error.response?.data || "Internal Server Error");
+        .json(error.response?.data.error || "Internal Server Error");
     }
   }
 
@@ -54,9 +54,15 @@ export class AuthControllerGateway {
         data: response.data,
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -75,10 +81,17 @@ export class AuthControllerGateway {
         message: "User successfully logged out",
         data: response.data,
       });
+      
     } catch (error) {
-      return res
-        .status(500)
-        .json({ error: error.response?.data || "Internal Server Error" });
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -97,10 +110,17 @@ export class AuthControllerGateway {
         message: "Token is valid",
         data: response.data,
       });
+
     } catch (error) {
-      return res
-        .status(500)
-        .json({ error: error.response?.data || "Internal Server Error" });
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -122,7 +142,7 @@ export class AuthControllerGateway {
       console.log(error);
       return res
         .status(500)
-        .json({ error: error.response?.data || "Internal Server Error" });
+        .json(error);
     }
   }
 }
