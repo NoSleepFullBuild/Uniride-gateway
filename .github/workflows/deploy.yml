@@ -45,10 +45,10 @@ jobs:
             fi
             echo "PORT=${{ secrets.GATEWAY_PORT_DEV }}" >> .env
             echo "TOKEN_REPO=${{ secrets.TOKEN_REPO }}" >> .env
-            echo "AUTH_PORT"=${{ secrets.AUTH_PORT_DEV }}" >> .env
-            echo "USER_PORT"=${{ secrets.USER_PORT_DEV }}" >> .env
-            echo "TRIP_PORT"=${{ secrets.TRIPS_PORT }}" >> .env
-            echo "FEEDBACK_PORT"=${{ secrets.FEEDBACK_PORT_DEV }}" >> .env
+            echo "AUTH_PORT=${{ secrets.AUTH_PORT_DEV }}" >> .env
+            echo "USER_PORT=${{ secrets.USER_PORT_DEV }}" >> .env
+            echo "TRIP_PORT=${{ secrets.TRIPS_PORT }}" >> .env
+            echo "FEEDBACK_PORT=${{ secrets.FEEDBACK_PORT_DEV }}" >> .env
             # Correction : Assurez-vous que la version de Node.js est vérifiée dans le conteneur Docker et non sur le serveur hôte
             docker-compose up -d --build
 
