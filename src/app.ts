@@ -38,6 +38,7 @@ app.post('/api/gateway/trips/:id/join', tripController.joinTrip.bind(tripControl
 
 app.get('/api/gateway/trips/driver/:id', tripController.getTripsByDriverId.bind(tripController));
 app.get('/api/gateway/trips/passengers/:id', tripController.getTripsByPassengerId.bind(tripController));
+app.get('/api/gateway/trips/users/:tripId', tripController.getUserByTripId.bind(tripController));
 app.put('/api/gateway/trips/:id', tripController.updateTrip.bind(tripController));
 app.delete('/api/gateway/trips/:id', tripController.deleteTrip.bind(tripController));
 
@@ -56,6 +57,6 @@ app.all('*', (req: Request, res: Response) => {
 });
 
 
-app.listen(3002, () => {
-    console.log('API Gateway en écoute sur le port 3002');
+app.listen(3003, () => {
+    console.log('API Gateway en écoute sur le port 3003');
 });

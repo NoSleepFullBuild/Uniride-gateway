@@ -43,7 +43,7 @@ export class TripControllerGateway {
           .status(500)
           .json({error: "Internal Server Error"});
       }
-  }
+    }
   }
 
   async getTripById(req: Request, res: Response) {
@@ -195,6 +195,41 @@ export class TripControllerGateway {
 
       const response = {
         items: [ updateTrip.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
+    } catch (error) {
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
+    }
+  }
+
+  async getUserByTripId(req: Request, res: Response) {
+
+    try {
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
+      }
+
+      const user = await axios.get(`${TRIP_API_URL}/users/${req.params.tripId}`, {
+        headers: {
+          Authorization: `Bearer ${authentication.token}`,
+        },
+      });
+
+      console.log("user", user)
+
+      const response = {
+        items: [ user.data ],
         host: { ... authentication.user, token: authentication.token }
       };
 

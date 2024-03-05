@@ -5,11 +5,12 @@ import { AUTH_API_URL, USER_API_URL } from "../const";
 export class AuthControllerGateway {
   async register(req: Request, res: Response) {
 
-    // checkout fields
     const { email, username, password } = req.body;
     if (!email || !username || !password ) {
       return res.status(400).json({ error: "Missing fields" });
     }
+
+    console.log('auth call')
 
     try {
       const authResponse = await axios.post(
@@ -23,6 +24,8 @@ export class AuthControllerGateway {
       
 
       console.log("authResponse", authResponse.data);
+
+      console.log('user call')
 
       const userResponse = await axios.post(`${USER_API_URL}`, {...req.body, authId: authResponse.data.user.id});
       if (userResponse.status !== 200) {
