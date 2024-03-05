@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - TOKEN_REPO=${TOKEN_REPO}
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      TOKEN_REPO: ${TOKEN_REPO}
+      PORT: ${PORT}
+      AUTH_PORT: ${AUTH_PORT}
+      USER_PORT: ${USER_PORT}
+      TRIP_PORT: ${TRIP_PORT}
+      FEEDBACK_PORT: ${FEEDBACK_PORT}
+
