@@ -5,7 +5,7 @@ import { TripControllerGateway } from "./controllers/trip.controller";
 import { UserControllerGateway } from "./controllers/user.controller";
 import { loggerMiddleware } from "./middleware/loggerMiddleware";
 
-
+require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -57,6 +57,11 @@ app.all('*', (req: Request, res: Response) => {
 });
 
 
+<<<<<<< HEAD
 app.listen(3003, () => {
     console.log('API Gateway en écoute sur le port 3003');
+=======
+app.listen(Number(process.env.PORT), ()=> {
+    console.log('API Gateway en écoute sur le port ' + process.env.PORT);
+>>>>>>> fb308968474a661b70e48d9f2e36ef18e56167e1
 });
