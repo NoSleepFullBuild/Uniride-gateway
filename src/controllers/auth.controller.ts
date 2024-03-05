@@ -4,7 +4,6 @@ import { AUTH_API_URL, USER_API_URL } from "../const";
 
 export class AuthControllerGateway {
   async register(req: Request, res: Response) {
-
     // checkout fields
     const { email, username, password } = req.body;
     if (!email || !username || !password ) {
@@ -54,6 +53,7 @@ export class AuthControllerGateway {
         data: response.data,
       });
     } catch (error) {
+      console.log(error);
       if(error.response?.data.error){
           return res
           .status(500)
@@ -112,6 +112,7 @@ export class AuthControllerGateway {
       });
 
     } catch (error) {
+      console.log(error);
       if(error.response?.data.error){
           return res
           .status(500)
