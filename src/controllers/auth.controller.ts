@@ -102,7 +102,7 @@ export class AuthControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      console.log(AUTH_API_URL)
+      console.log("Auth api URL", AUTH_API_URL)
 
       const response = await axios.get(`${AUTH_API_URL}/verify-token`, {
         headers: { Authorization: `Bearer ${token}` },
