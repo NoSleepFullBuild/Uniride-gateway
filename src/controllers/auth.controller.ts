@@ -20,10 +20,11 @@ export class AuthControllerGateway {
       if (authResponse.status !== 201) {
         return res.status(authResponse.status).json(authResponse.data);
       }
+      
 
       console.log("authResponse", authResponse.data);
 
-      const userResponse = await axios.post(`${USER_API_URL}`, req.body);
+      const userResponse = await axios.post(`${USER_API_URL}`, {...req.body, authId: authResponse.data.user.id});
       if (userResponse.status !== 200) {
         return res.status(userResponse.status).json(userResponse.data);
       }
@@ -31,14 +32,15 @@ export class AuthControllerGateway {
       return res
         .status(200)
         .json({
-          message: "User successfully registered",
+          message: "Auth successfully registered",
           data: userResponse.data,
         });
+        
     } catch (error) {
-      console.log("error", error);
+      console.log(error.response)
       return res
         .status(500)
-        .json(error.response?.data || "Internal Server Error");
+        .json(error.response?.data.error || "Internal Server Error");
     }
   }
 
@@ -52,9 +54,15 @@ export class AuthControllerGateway {
         data: response.data,
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -73,10 +81,17 @@ export class AuthControllerGateway {
         message: "User successfully logged out",
         data: response.data,
       });
+      
     } catch (error) {
-      return res
-        .status(500)
-        .json({ error: error.response?.data || "Internal Server Error" });
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -95,10 +110,17 @@ export class AuthControllerGateway {
         message: "Token is valid",
         data: response.data,
       });
+
     } catch (error) {
-      return res
-        .status(500)
-        .json({ error: error.response?.data || "Internal Server Error" });
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -120,7 +142,7 @@ export class AuthControllerGateway {
       console.log(error);
       return res
         .status(500)
-        .json({ error: error.response?.data || "Internal Server Error" });
+        .json(error);
     }
   }
 }

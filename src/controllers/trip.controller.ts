@@ -1,170 +1,243 @@
 import axios from "axios";
 import { Request, Response } from "express";
-import { TRIP_API_URL } from "../const";
-import { Token } from "../middleware/token";
+import { TRIP_API_URL, USER_API_URL } from "../const";
+import { Authenticate } from "../services/authenticate";
+import { UserControllerGateway } from "./user.controller";
+
 
 export class TripControllerGateway {
-  private tokenService: Token;
+  private authenticationService: Authenticate
 
   constructor() {
-    this.tokenService = new Token();
+    this.authenticationService = new Authenticate();
   }
 
   async getTrips(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
-      console.log(tokenResponse);
+      const trips = await axios.get(`${TRIP_API_URL}`);
 
-      const response = await axios.get(`${TRIP_API_URL}`);
-      return res.status(200).json(response.data);
+      if (trips.data.error) {
+        return res.status(404).json(trips.data);
+      }
+
+      const response = {
+        items: [ trips.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
+
     } catch (error) {
-      const errorMessage =
-        error.response?.data || error.message || "Internal Server Error";
-      return res.status(500).json({ error: errorMessage });
-    }
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
+  }
   }
 
   async getTripById(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
+      const getTipById = await axios.get(`${TRIP_API_URL}/${req.params.id}`);
 
-      const response = await axios.get(`${TRIP_API_URL}/${req.params.id}`);
-      return res.status(200).json(response.data);
+      const response = {
+        items: [ getTipById.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
+
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
-    }
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
+  }
   }
 
   async createTrip(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
-
-      const auth = await this.tokenService.getAuth(token);
 
       const structuredData = {
         data: req.body,
         metadata: {
-            ...auth
+            ...authentication
         }
       };
 
-      console.log(structuredData)
+      // Get id from user
+      const user = await axios.get(`${USER_API_URL}/whoIam/${authentication.user.email}`, {
+        headers: {
+          Authorization: `Bearer ${authentication.token}`,
+        },
+      });
 
-      const response = await axios.post(`${TRIP_API_URL}`,
-       structuredData)
+      structuredData.data.userId = user.data.id;
+      const createTrip = await axios.post(`${TRIP_API_URL}`, structuredData)
 
-      return res.status(201).json(response.data);
+      const response = {
+        items: [ createTrip.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(201).json(response);
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
-    }
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
+  }
   }
 
   async joinTrip(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
-      console.log(tokenResponse);
-
-      const response = await axios.post(
+      const joinTrip = await axios.post(
         `${TRIP_API_URL}/${req.params.id}/join`,
-         { ...req.body, token },
+         { ...req.body},
       );
-      console.log(response);
-      return res.status(200).json(response.data);
+
+      
+      const response = {
+        items: [ joinTrip.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
-    }
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
+  }
   }
 
   async getTripsByPassengerId(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
-      console.log(tokenResponse);
-
-      const response = await axios.get(
+      const getTripsById = await axios.get(
         `${TRIP_API_URL}/passengers/${req.params.id}`
       );
-      return res.status(200).json(response.data);
+
+            
+      const response = {
+        items: [ getTripsById.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
   async updateTrip(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
-      console.log(tokenResponse);
-
-      const response = await axios.put(
+      const updateTrip = await axios.put(
         `${TRIP_API_URL}/${req.params.id}`,
-        { ...req.body, token },
+        { ...req.body },
       );
-      return res.status(200).json(response.data);
+
+      const response = {
+        items: [ updateTrip.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
   async deleteTrip(req: Request, res: Response) {
     try {
-      const token = req.headers["authorization"]?.split(" ")[1];
-
-      if (!token) {
-        return res.status(400).json({ error: "No token provided." });
+      const authentication = await this.authenticationService.getAuth(req);
+      if(authentication.error){
+        return res.status(401).json(authentication);
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
-      console.log(tokenResponse);
+      const deleteTrip = await axios.delete(`${TRIP_API_URL}/${req.params.id}`);
 
-      const response = await axios.delete(`${TRIP_API_URL}/${req.params.id}`);
-      return res.status(200).json(response.data);
+      const response = {
+        items: [ deleteTrip.data ],
+        host: { ... authentication.user, token: authentication.token }
+      };
+
+      return res.status(200).json(response);
+      
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -176,7 +249,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
+      const tokenResponse = await this.authenticationService.getAuth(req);
       console.log(tokenResponse);
 
       const response = await axios.get(
@@ -184,9 +257,15 @@ export class TripControllerGateway {
       );
       return res.status(200).json(response.data);
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 
@@ -198,7 +277,7 @@ export class TripControllerGateway {
         return res.status(400).json({ error: "No token provided." });
       }
 
-      const tokenResponse = await this.tokenService.getAuth(token);
+      const tokenResponse = await this.authenticationService.getAuth(req);
       console.log(tokenResponse);
 
       const response = await axios.get(
@@ -206,9 +285,15 @@ export class TripControllerGateway {
       );
       return res.status(200).json(response.data);
     } catch (error) {
-      return res
-        .status(500)
-        .json(error.response?.data || "Internal Server Error");
+      if(error.response?.data.error){
+          return res
+          .status(500)
+          .json(error.response?.data);
+      }else{
+          return res
+          .status(500)
+          .json({error: "Internal Server Error"});
+      }
     }
   }
 }
